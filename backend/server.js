@@ -1237,7 +1237,46 @@ app.delete('/api/sessions', authMiddleware, async (req, res) => {
   }
 });
 
+// Chatbot Endpoint using Gemini AI
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, history } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    // Initialize chat using gemini-flash-lite-latest for speed and high accuracy
+    const chatModel = genAI.getGenerativeModel({
+      model: 'gemini-flash-lite-latest',
+      systemInstruction: `You are Prep2Hire AI, a highly accurate (98-100% precision) intelligent career assistant. You can help users with resume building, mock interviews, career guidance, coding problems, technical queries, general knowledge, or any other questions. Keep answers clear, structured, professional, and friendly. Always deliver direct and highly precise answers. Use bold text, bullet points, and code blocks for readability where appropriate.`
+    });
+
+    // Format chat history for Gemini API: [{ role: 'user' | 'model', parts: [{ text: '...' }] }]
+    const formattedHistory = (history || []).map(h => {
+      const role = h.role === 'assistant' || h.role === 'model' ? 'model' : 'user';
+      return {
+        role: role,
+        parts: [{ text: h.content || h.parts?.[0]?.text || '' }]
+      };
+    });
+
+    const chat = chatModel.startChat({
+      history: formattedHistory
+    });
+
+    const result = await chat.sendMessage(message);
+    const response = await result.response;
+    const replyText = response.text();
+
+    res.json({ reply: replyText });
+  } catch (error) {
+    console.error('Chatbot API error:', error);
+    res.status(500).json({ error: 'Sorry, I encountered an error. Please try again.' });
+  }
+});
+
 // Start Server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+

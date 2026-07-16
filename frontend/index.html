@@ -556,7 +556,69 @@
     </div>
   </div>
 
+  <!-- CHATBOT WIDGET -->
+  <div class="chatbot-container" id="chatbot-container">
+    <!-- Floating Chat Button -->
+    <button class="chatbot-toggle-btn" id="chatbot-toggle-btn" title="Ask Prep2Hire AI">
+      <i class="fa-solid fa-comments"></i>
+      <span class="chatbot-pulse"></span>
+    </button>
+
+    <!-- Chat Window -->
+    <div class="chatbot-window glass-card" id="chatbot-window">
+      <!-- Chat Header -->
+      <div class="chatbot-header">
+        <div class="chatbot-header-info">
+          <div class="chatbot-avatar">
+            <i class="fa-solid fa-robot"></i>
+            <span class="online-indicator"></span>
+          </div>
+          <div>
+            <h4>Prep2Hire AI</h4>
+            <p>Online • Career Coach</p>
+          </div>
+        </div>
+        <div class="chatbot-header-actions">
+          <button id="chatbot-minimize-btn" title="Minimize"><i class="fa-solid fa-minus"></i></button>
+          <button id="chatbot-clear-btn" title="Clear Chat"><i class="fa-solid fa-rotate-left"></i></button>
+        </div>
+      </div>
+
+      <!-- Chat Messages Area -->
+      <div class="chatbot-messages" id="chatbot-messages">
+        <div class="chat-message bot-message">
+          <div class="message-content">
+            Hello! I am Prep2Hire AI. How can I help you today? You can ask me anything about resume writing, mock interviews, coding questions, career guidance, or any general topics!
+          </div>
+          <span class="message-time">Just now</span>
+        </div>
+      </div>
+
+      <!-- Chat Quick Suggestions -->
+      <div class="chatbot-suggestions" id="chatbot-suggestions">
+        <button class="suggestion-chip">Mock interview tips</button>
+        <button class="suggestion-chip">How to structure resume?</button>
+        <button class="suggestion-chip">Tell me a coding joke</button>
+        <button class="suggestion-chip">Explain OOP principles</button>
+      </div>
+
+      <!-- Chat Input Area -->
+      <form class="chatbot-input-area" id="chatbot-input-form" autocomplete="off">
+        <div class="chat-input-wrapper">
+          <input type="text" id="chatbot-input" placeholder="Ask me any question..." required autocomplete="off">
+          <button type="button" class="chat-action-btn" id="chatbot-mic-btn" title="Voice Input">
+            <i class="fa-solid fa-microphone"></i>
+          </button>
+        </div>
+        <button type="submit" class="chat-send-btn" id="chatbot-send-btn" title="Send Message">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- Custom JS -->
   <script src="app.js"></script>
 </body>
 </html>
+

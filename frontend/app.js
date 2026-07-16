@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupTheme();
   setupDragAndDrop();
   setupAuthEvents();
+  initChatbot();
 });
 
 // View Navigation Helper
@@ -1299,3 +1300,199 @@ reportBackHomeBtn.addEventListener('click', () => {
   showView('landing');
   loadPastAssessments();
 });
+
+// -------------------------------------------------------------
+// CHATBOT WIDGET LOGIC
+// -------------------------------------------------------------
+let chatHistory = [];
+let chatIsRecording = false;
+let chatRecognition = null;
+
+function initChatbot() {
+  const toggleBtn = document.getElementById('chatbot-toggle-btn');
+  const windowEl = document.getElementById('chatbot-window');
+  const minimizeBtn = document.getElementById('chatbot-minimize-btn');
+  const clearBtn = document.getElementById('chatbot-clear-btn');
+  const messagesEl = document.getElementById('chatbot-messages');
+  const formEl = document.getElementById('chatbot-input-form');
+  const inputEl = document.getElementById('chatbot-input');
+  const micBtn = document.getElementById('chatbot-mic-btn');
+  const suggestionsContainer = document.getElementById('chatbot-suggestions');
+
+  // Toggle Chat window
+  toggleBtn.addEventListener('click', () => {
+    windowEl.classList.toggle('active');
+    if (windowEl.classList.contains('active')) {
+      inputEl.focus();
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+  });
+
+  // Minimize Chat
+  minimizeBtn.addEventListener('click', () => {
+    windowEl.classList.remove('active');
+  });
+
+  // Clear Chat
+  clearBtn.addEventListener('click', () => {
+    if (confirm('Clear entire chat conversation history?')) {
+      chatHistory = [];
+      messagesEl.innerHTML = `
+        <div class="chat-message bot-message">
+          <div class="message-content">
+            Hello! I am Prep2Hire AI. How can I help you today? You can ask me anything about resume writing, mock interviews, coding questions, career guidance, or any general topics!
+          </div>
+          <span class="message-time">Just now</span>
+        </div>
+      `;
+    }
+  });
+
+  // Suggestion chips
+  if (suggestionsContainer) {
+    suggestionsContainer.querySelectorAll('.suggestion-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const text = chip.textContent;
+        inputEl.value = text;
+        formEl.dispatchEvent(new Event('submit'));
+      });
+    });
+  }
+
+  // Handle Form Submit
+  formEl.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = inputEl.value.trim();
+    if (!text) return;
+
+    inputEl.value = '';
+    appendMessage('user', text);
+    
+    // Add Typing indicator
+    const typingIndicator = document.createElement('div');
+    typingIndicator.className = 'chat-message bot-message typing-indicator-msg';
+    typingIndicator.innerHTML = `
+      <div class="message-content">
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    `;
+    messagesEl.appendChild(typingIndicator);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    try {
+      // Send message to backend
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, history: chatHistory })
+      });
+      const data = await response.json();
+      
+      // Remove typing indicator
+      typingIndicator.remove();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch response');
+      }
+
+      appendMessage('bot', data.reply);
+      
+      // Update history
+      chatHistory.push({ role: 'user', content: text });
+      chatHistory.push({ role: 'model', content: data.reply });
+
+    } catch (err) {
+      console.error(err);
+      typingIndicator.remove();
+      appendMessage('bot', 'Sorry, I failed to process that message. Please try again.');
+    }
+  });
+
+  // Helper to append message bubble
+  function appendMessage(sender, text) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-message ${sender === 'user' ? 'user-message' : 'bot-message'}`;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    if (sender === 'bot') {
+      contentDiv.innerHTML = renderMarkdown(text);
+    } else {
+      contentDiv.textContent = text;
+    }
+    msgDiv.appendChild(contentDiv);
+    
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'message-time';
+    const now = new Date();
+    timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    msgDiv.appendChild(timeSpan);
+    
+    messagesEl.appendChild(msgDiv);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  // Voice Speech Recognition setup for Chatbot Input
+  const ChatSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (ChatSpeechRecognition) {
+    chatRecognition = new ChatSpeechRecognition();
+    chatRecognition.continuous = false;
+    chatRecognition.interimResults = false;
+    chatRecognition.lang = 'en-US';
+
+    chatRecognition.onstart = () => {
+      chatIsRecording = true;
+      micBtn.classList.add('recording');
+      inputEl.placeholder = 'Listening...';
+    };
+
+    chatRecognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      inputEl.value = transcript;
+    };
+
+    chatRecognition.onerror = (event) => {
+      console.error('Chat speech recognition error:', event.error);
+      stopChatMic();
+    };
+
+    chatRecognition.onend = () => {
+      stopChatMic();
+    };
+
+    function startChatMic() {
+      try {
+        chatRecognition.start();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function stopChatMic() {
+      chatIsRecording = false;
+      micBtn.classList.remove('recording');
+      inputEl.placeholder = 'Ask me any question...';
+      try {
+        chatRecognition.stop();
+      } catch (err) {
+        // Already stopped
+      }
+    }
+
+    micBtn.addEventListener('click', () => {
+      if (chatIsRecording) {
+        stopChatMic();
+      } else {
+        startChatMic();
+      }
+    });
+  } else {
+    // Hide mic button if unsupported
+    micBtn.style.display = 'none';
+  }
+}
+
