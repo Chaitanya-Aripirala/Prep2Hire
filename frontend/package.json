@@ -1,0 +1,8 @@
+{
+  "name": "prep2hire-frontend",
+  "version": "1.0.0",
+  "description": "Static frontend server for Prep2Hire Career Platform",
+  "scripts": {
+    "start": "npx -y serve -l 3000"
+  }
+}

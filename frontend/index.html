@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prep2Hire — Career Recommendation & Job Fit Assessment</title>
+  <meta name="description" content="Get custom AI career recommendations, job fit analysis, and a structured learning roadmap based on a complete technical, coding, HR, and communication evaluation.">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- html2pdf.js for client-side PDF downloads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+  <!-- Top Decorative Background Blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <header class="app-header">
+    <div class="header-container">
+      <div class="logo-area" id="header-logo-btn">
+        <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <h1>Prep<span>2Hire</span></h1>
+      </div>
+      <div class="nav-actions">
+        <!-- Auth buttons -->
+        <div id="auth-logged-out" class="auth-buttons-group">
+          <button id="header-login-btn" class="btn btn-secondary"><i class="fa-solid fa-sign-in-alt"></i> Login</button>
+          <button id="header-signup-btn" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Sign Up</button>
+        </div>
+        <div id="auth-logged-in" class="auth-user-group" style="display: none;">
+          <span class="user-greeting"><i class="fa-solid fa-user-circle"></i> <span id="user-display-name">User</span></span>
+          <button id="view-history-btn" class="btn btn-secondary"><i class="fa-solid fa-history"></i> History</button>
+          <button id="header-logout-btn" class="btn btn-secondary btn-icon-only" title="Logout"><i class="fa-solid fa-sign-out-alt"></i></button>
+        </div>
+        <button id="theme-toggle-btn" class="btn btn-icon"><i class="fa-solid fa-sun"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-container">
+
+    <!-- VIEW 1: LANDING & DASHBOARD HISTORY -->
+    <section id="view-landing" class="app-view active">
+      <div class="hero-section">
+        <h2 class="hero-title">Assess Your Readiness. <br>Discover Your <span>True Potential</span>.</h2>
+        <p class="hero-subtitle">Prep2Hire runs you through a full technical, coding, behavioral, and communication assessment to build a personalized job-fit report, career recommendations, and 4-week roadmap.</p>
+        <div class="hero-actions">
+          <button id="start-new-assessment-btn" class="btn btn-primary btn-large">Start New Assessment <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <div class="history-section">
+        <div class="section-header flex-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+          <div>
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> Past Assessment Reports</h3>
+            <p>Review your previous evaluations and roadmap progress</p>
+          </div>
+          <button id="clear-history-btn" class="btn btn-secondary btn-small" style="display: none; padding: 0.5rem 1rem; font-size: 0.85rem;"><i class="fa-solid fa-trash-can"></i> Clear History</button>
+        </div>
+        <div id="past-reports-grid" class="reports-grid">
+          <!-- Dynamically Loaded -->
+          <div class="loading-placeholder">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Loading history...
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: SETUP & PROFILE INPUT -->
+    <section id="view-setup" class="app-view">
+      <div class="card glass-card form-card">
+        <button class="back-btn" id="setup-back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <h2 class="card-title">Setup Your Assessment</h2>
+        <p class="card-subtitle">Fill in details and upload your resume. Prep2Hire will customize the questions for you.</p>
+
+        <form id="assessment-setup-form" autocomplete="off">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="candidateName">Full Name <span class="required">*</span></label>
+              <input type="text" id="candidateName" required placeholder="" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="targetRole">Target Role <span class="required">*</span></label>
+              <input type="text" id="targetRole" required placeholder="" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="targetCompany">Target Company</label>
+              <input type="text" id="targetCompany" placeholder="" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="jobDescription">Target Job Description (Optional)</label>
+              <textarea id="jobDescription" placeholder="" autocomplete="off"></textarea>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Upload Resume (PDF only) <span class="required">*</span></label>
+            <div class="file-drop-zone" id="drop-zone">
+              <input type="file" id="resumeFile" accept=".pdf" required>
+              <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+              <p class="drop-text">Drag & drop your PDF resume here, or <span>browse</span></p>
+              <p class="file-info" id="file-info"></p>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-large w-100" id="setup-submit-btn">
+              Analyze Resume & Customize Interview <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- VIEW 3: LOADING TRANSITION STATE -->
+    <section id="view-loading-state" class="app-view">
+      <div class="loading-container card glass-card">
+        <div class="spinner-outer">
+          <div class="spinner-inner"></div>
+          <i class="fa-solid fa-brain loading-brain-icon"></i>
+        </div>
+        <h2 id="loading-title">Parsing Profile</h2>
+        <p id="loading-text">Analyzing your resume using Gemini, parsing skills and experiences...</p>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="loading-progress-bar"></div>
+        </div>
+    </section>
+
+    <!-- VIEW: QUESTIONS PREVIEW AND STUDY GUIDE -->
+    <section id="view-questions-preview" class="app-view">
+      <div class="card glass-card preview-card">
+        <h2 class="text-gradient">Your Customized Study Guide</h2>
+        <p class="subtitle">Based on your profile, target role, and company, Gemini has curated the following list of practice questions for your preparation.</p>
+        
+        <div class="preview-rounds-grid">
+          <!-- Technical Questions -->
+          <div class="preview-round-box">
+            <h3><i class="fa-solid fa-code"></i> Technical Questions</h3>
+            <div id="preview-tech-questions" class="preview-list">Loading...</div>
+          </div>
+          
+          <!-- Coding Challenges -->
+          <div class="preview-round-box">
+            <h3><i class="fa-solid fa-laptop-code"></i> Coding Challenges</h3>
+            <div id="preview-coding-questions" class="preview-list">Loading...</div>
+          </div>
+
+          <!-- HR / Behavioral Questions -->
+          <div class="preview-round-box">
+            <h3><i class="fa-solid fa-users"></i> HR & Behavioral</h3>
+            <div id="preview-hr-questions" class="preview-list">Loading...</div>
+          </div>
+
+          <!-- JAM Session Topics -->
+          <div class="preview-round-box">
+            <h3><i class="fa-solid fa-comments"></i> JAM Session Topics</h3>
+            <div id="preview-jam-questions" class="preview-list">Loading...</div>
+          </div>
+        </div>
+
+        <div class="preview-actions">
+          <button class="btn btn-secondary btn-large" id="preview-skip-btn">
+            Skip Quiz & View Career Report
+          </button>
+          <button class="btn btn-primary btn-large" id="preview-start-quiz-btn">
+            Start Mock Assessment Quiz <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: TECHNICAL INTERVIEW ROUND -->
+    <section id="view-technical" class="app-view">
+      <div class="card glass-card quiz-card">
+        <div class="round-indicator">Round 1/4 &bull; Technical Interview</div>
+        <h2 id="tech-question-title" class="question-title">Loading question...</h2>
+        
+        <div class="form-group">
+          <label for="tech-answer-input">Your Answer</label>
+          <textarea id="tech-answer-input" class="interview-textarea" placeholder="Type your answer clearly. Be detailed..."></textarea>
+        </div>
+
+        <div class="quiz-footer">
+          <span class="question-counter" id="tech-question-counter">Question 1 of 3</span>
+          <button id="tech-next-btn" class="btn btn-primary">Next Question <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: CODING ROUND -->
+    <section id="view-coding" class="app-view">
+      <div class="coding-container">
+        <!-- Problem Description Pane -->
+        <div class="card glass-card coding-details-pane">
+          <div class="round-indicator">Round 2/4 &bull; Coding Round</div>
+          <h2 id="coding-title" class="coding-prob-title">Loading challenge...</h2>
+          <div id="coding-description" class="coding-prob-desc">
+            <!-- Problem description in markdown gets loaded here -->
+          </div>
+        </div>
+        
+        <!-- Code Editor Pane -->
+        <div class="card glass-card coding-editor-pane">
+          <div class="editor-header">
+            <span><i class="fa-solid fa-code"></i> Solution Editor (JavaScript/Python style)</span>
+            <button id="coding-reset-btn" class="btn btn-secondary btn-small"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          </div>
+          <div class="editor-textarea-wrapper">
+            <textarea id="coding-editor" class="code-editor" spellcheck="false" placeholder="// Write your solution here..."></textarea>
+          </div>
+          <div class="editor-footer">
+            <button id="coding-skip-btn" class="btn btn-secondary">Skip Coding Round</button>
+            <button id="coding-submit-btn" class="btn btn-primary">Submit Solution <i class="fa-solid fa-check"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 6: HR INTERVIEW ROUND -->
+    <section id="view-hr" class="app-view">
+      <div class="card glass-card quiz-card">
+        <div class="round-indicator">Round 3/4 &bull; HR & Culture Fit</div>
+        <h2 id="hr-question-title" class="question-title">Loading question...</h2>
+        
+        <div class="form-group">
+          <label for="hr-answer-input">Your Answer</label>
+          <textarea id="hr-answer-input" class="interview-textarea" placeholder="Provide examples of how you handle situations (e.g., using the STAR method)..."></textarea>
+        </div>
+
+        <div class="quiz-footer">
+          <span class="question-counter" id="hr-question-counter">Question 1 of 3</span>
+          <button id="hr-next-btn" class="btn btn-primary">Next Question <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 7: COMMUNICATION / JAM SESSION -->
+    <section id="view-communication" class="app-view">
+      <div class="card glass-card quiz-card">
+        <div class="round-indicator">Round 4/4 &bull; Communication & Flow (JAM Session)</div>
+        <div class="jam-header">
+          <h2 class="question-title">JAM Topic: <span id="jam-topic-title" class="gradient-text">Loading Topic...</span></h2>
+          <div class="timer-badge" id="jam-timer-badge">
+            <i class="fa-solid fa-clock"></i> <span id="jam-timer">60</span>s
+          </div>
+        </div>
+        <p class="jam-instruction">Just A Minute (JAM): Write or dictate your thoughts on the topic above. Focus on structure, grammatical clarity, and a confident tone. You have 60 seconds.</p>
+        
+        <div class="form-group">
+          <label for="jam-answer-input">Type or record your speech response</label>
+          <div class="speech-input-wrapper" style="position: relative;">
+            <textarea id="jam-answer-input" class="interview-textarea" placeholder="Start speaking or typing your response immediately. Focus on speaking/writing without pausing..."></textarea>
+            <button id="jam-mic-btn" type="button" class="btn btn-danger mic-btn" style="position: absolute; bottom: 15px; right: 15px; border-radius: 50%; width: 50px; height: 50px; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4); border: none; background: #dc3545; color: white; cursor: pointer; transition: all 0.3s ease;">
+              <i class="fa-solid fa-microphone" style="font-size: 1.25rem;"></i>
+            </button>
+          </div>
+          <p id="mic-status" style="margin-top: 5px; font-size: 0.85rem; color: var(--text-secondary);"></p>
+        </div>
+
+        <div class="quiz-footer">
+          <button id="jam-start-timer-btn" class="btn btn-secondary"><i class="fa-solid fa-play"></i> Start 60s Timer</button>
+          <button id="jam-submit-btn" class="btn btn-primary">Submit JAM Session <i class="fa-solid fa-square-check"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 8: CAREER RECOMMENDATION & JOB FIT REPORT (THE DASHBOARD) -->
+    <section id="view-report" class="app-view">
+      <!-- Report Header Operations -->
+      <div class="report-operations">
+        <button id="report-back-home-btn" class="btn btn-secondary"><i class="fa-solid fa-home"></i> Home</button>
+        <button id="download-pdf-btn" class="btn btn-primary"><i class="fa-solid fa-file-pdf"></i> Download PDF Report</button>
+      </div>
+
+      <!-- PDF EXPORT CONTAINER -->
+      <div id="report-pdf-container" class="report-pdf-wrapper">
+        
+        <!-- Header Info -->
+        <div class="report-card-header">
+          <div class="report-logo">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <h2>Elevate<span>AI</span></h2>
+          </div>
+          <div class="report-meta">
+            <p><strong>Candidate:</strong> <span id="rep-candidate-name">Loading...</span></p>
+            <p><strong>Target Position:</strong> <span id="rep-target-role">Loading...</span> &bull; <span id="rep-target-company">Loading...</span></p>
+            <p><strong>Date:</strong> <span id="rep-date">Loading...</span></p>
+          </div>
+        </div>
+
+        <!-- Dashboard Layout Grid -->
+        <div class="report-dashboard-grid">
+          
+          <!-- Column 1: Job Fit Score Card -->
+          <div class="card glass-card rep-card col-span-2">
+            <h3 class="rep-card-title"><i class="fa-solid fa-chart-line"></i> Job Fit & Competency Score</h3>
+            
+            <div class="scores-container">
+              <div class="overall-fit-circle">
+                <div class="circle-svg-wrapper">
+                  <svg viewBox="0 0 100 100" class="progress-ring">
+                    <circle class="progress-ring-bg" cx="50" cy="50" r="40" stroke-width="8"></circle>
+                    <circle class="progress-ring-fill" id="rep-overall-ring" cx="50" cy="50" r="40" stroke-width="8" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                  </svg>
+                  <div class="circle-val">
+                    <span id="rep-overall-score">0%</span>
+                    <label>Overall Fit</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sub-scores-list">
+                <!-- Technical Match -->
+                <div class="sub-score-item">
+                  <div class="sub-score-info">
+                    <span>Technical Match</span>
+                    <span id="rep-tech-val">0%</span>
+                  </div>
+                  <div class="sub-score-bar">
+                    <div class="sub-score-fill" id="rep-tech-bar" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <!-- Communication Match -->
+                <div class="sub-score-item">
+                  <div class="sub-score-info">
+                    <span>Communication Match</span>
+                    <span id="rep-comm-val">0%</span>
+                  </div>
+                  <div class="sub-score-bar">
+                    <div class="sub-score-fill" id="rep-comm-bar" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <!-- Experience Match -->
+                <div class="sub-score-item">
+                  <div class="sub-score-info">
+                    <span>Experience Match</span>
+                    <span id="rep-exp-val">0%</span>
+                  </div>
+                  <div class="sub-score-bar">
+                    <div class="sub-score-fill" id="rep-exp-bar" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <!-- Problem-Solving Match -->
+                <div class="sub-score-item">
+                  <div class="sub-score-info">
+                    <span>Problem-Solving Match</span>
+                    <span id="rep-prob-val">0%</span>
+                  </div>
+                  <div class="sub-score-bar">
+                    <div class="sub-score-fill" id="rep-prob-bar" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Hiring Readiness Card -->
+          <div class="card glass-card rep-card col-span-1">
+            <h3 class="rep-card-title"><i class="fa-solid fa-clipboard-check"></i> Hiring Readiness</h3>
+            <div class="readiness-body">
+              <div class="readiness-badge" id="rep-readiness-badge">Good Fit</div>
+              <p class="readiness-explanation" id="rep-readiness-explanation">Loading explanation of readiness category based on the scores and resume profile details...</p>
+            </div>
+          </div>
+
+          <!-- Round-wise Detail Scores Section -->
+          <div class="card glass-card rep-card col-span-3">
+            <h3 class="rep-card-title"><i class="fa-solid fa-list-check"></i> Interview Performance Evaluation Details</h3>
+            <div class="eval-grid">
+              <div class="eval-card">
+                <div class="eval-card-header">
+                  <span>Resume & Skills Analysis</span>
+                  <span class="badge" id="rep-ats-score">ATS Score: 0/100</span>
+                </div>
+                <ul id="rep-resume-summary-list" class="report-list">
+                  <!-- Loaded via JS -->
+                </ul>
+              </div>
+
+              <div class="eval-card">
+                <div class="eval-card-header">
+                  <span>Coding Evaluation</span>
+                  <span class="badge" id="rep-coding-score">0/100</span>
+                </div>
+                <p id="rep-coding-feedback" class="eval-feedback">Loading coding feedback details...</p>
+              </div>
+
+              <div class="eval-card">
+                <div class="eval-card-header">
+                  <span>Communication Analysis</span>
+                  <span class="badge" id="rep-communication-score">0/100</span>
+                </div>
+                <div class="comm-eval-details">
+                  <p><strong>Grammar Feedback:</strong></p>
+                  <p id="rep-comm-grammar" class="eval-feedback">Loading grammar feedback...</p>
+                  <p><strong>Overall Feedback:</strong></p>
+                  <p id="rep-comm-overall" class="eval-feedback">Loading communication feedback...</p>
+                </div>
+              </div>
+
+              <div class="eval-card">
+                <div class="eval-card-header">
+                  <span>HR Feedback</span>
+                  <span class="badge" id="rep-hr-score">0/100</span>
+                </div>
+                <p id="rep-hr-feedback" class="eval-feedback">Loading HR feedback details...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: AI Career Recommendations -->
+          <div class="card glass-card rep-card col-span-1-5">
+            <h3 class="rep-card-title"><i class="fa-solid fa-compass"></i> Recommended Alternative Career Roles</h3>
+            <div id="rep-career-recommendations" class="role-rec-container">
+              <!-- Loaded via JS -->
+            </div>
+          </div>
+
+          <!-- Column 4: Company Recommendations -->
+          <div class="card glass-card rep-card col-span-1-5">
+            <h3 class="rep-card-title"><i class="fa-solid fa-building"></i> Target Company Matches</h3>
+            <div id="rep-company-recommendations" class="company-rec-container">
+              <!-- Loaded via JS -->
+            </div>
+          </div>
+
+          <!-- Column 5: Skill Gap Analysis -->
+          <div class="card glass-card rep-card col-span-3">
+            <h3 class="rep-card-title"><i class="fa-solid fa-triangle-exclamation"></i> Priority Skill Gap Analysis</h3>
+            <div class="table-responsive">
+              <table class="gap-table">
+                <thead>
+                  <tr>
+                    <th>Target Skill to Learn / Improve</th>
+                    <th>Priority Level</th>
+                    <th>Expected Impact</th>
+                  </tr>
+                </thead>
+                <tbody id="rep-skill-gap-table">
+                  <!-- Loaded via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Column 6: Personalized Learning Roadmap -->
+          <div class="card glass-card rep-card col-span-3">
+            <h3 class="rep-card-title"><i class="fa-solid fa-route"></i> Personalized 4-Week Learning Roadmap</h3>
+            <div class="roadmap-timeline" id="rep-roadmap-timeline">
+              <!-- Loaded via JS -->
+            </div>
+          </div>
+
+          <!-- Column 7: AI Career Mentor Summary -->
+          <div class="card glass-card rep-card col-span-3 mentor-card">
+            <h3 class="rep-card-title"><i class="fa-solid fa-user-tie"></i> AI Career Mentor Summary</h3>
+            <div class="mentor-grid">
+              <div class="mentor-main-text">
+                <div class="mentor-bubble">
+                  <p class="mentor-section"><strong>Overall Strengths:</strong></p>
+                  <p id="rep-mentor-strengths">Strengths text...</p>
+                  
+                  <p class="mentor-section"><strong>Areas to Improve:</strong></p>
+                  <p id="rep-mentor-improvements">Improvements text...</p>
+                  
+                  <p class="mentor-section"><strong>Career Advice:</strong></p>
+                  <p id="rep-mentor-advice">Advice text...</p>
+                </div>
+              </div>
+              <div class="mentor-sidebar">
+                <div class="mentor-stat-badge">
+                  <label>Confidence Level</label>
+                  <span id="rep-mentor-confidence" class="tag bg-green">High</span>
+                </div>
+                <div class="mentor-stat-badge">
+                  <label>Estimated Interview Readiness</label>
+                  <span id="rep-mentor-readiness" class="tag bg-blue">Ready</span>
+                </div>
+                <div class="mentor-stat-badge mt-2">
+                  <label>Next Step Recommendation</label>
+                  <p id="rep-mentor-nextsteps" class="next-step-text">Next step...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>&copy; 2026 Prep2Hire. Powered by Gemini AI. All rights reserved.</p>
+    </div>
+  </footer>
+  
+  <!-- MODAL: LOGIN -->
+  <div id="login-modal" class="modal-overlay">
+    <div class="card glass-card modal-card">
+      <button class="modal-close-btn" id="login-close-btn">&times;</button>
+      <h3 class="modal-title"><i class="fa-solid fa-right-to-bracket"></i> Login to Prep2Hire</h3>
+      <p class="modal-subtitle">Welcome back! Please enter your details below.</p>
+      
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" required placeholder="name@domain.com">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required placeholder="••••••••">
+        </div>
+        <p class="auth-error-msg" id="login-error-msg"></p>
+        <button type="submit" class="btn btn-primary w-100 mt-2">Log In <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+      </form>
+      <p class="auth-switch-text">Don't have an account? <span id="switch-to-signup">Sign Up</span></p>
+    </div>
+  </div>
+
+  <!-- MODAL: SIGNUP -->
+  <div id="signup-modal" class="modal-overlay">
+    <div class="card glass-card modal-card">
+      <button class="modal-close-btn" id="signup-close-btn">&times;</button>
+      <h3 class="modal-title"><i class="fa-solid fa-user-plus"></i> Create Account</h3>
+      <p class="modal-subtitle">Get started with your free mock interview assessment profile.</p>
+      
+      <form id="signup-form">
+        <div class="form-group">
+          <label for="signup-name">Full Name</label>
+          <input type="text" id="signup-name" required placeholder="">
+        </div>
+        <div class="form-group">
+          <label for="signup-email">Email Address</label>
+          <input type="email" id="signup-email" required placeholder="name@domain.com">
+        </div>
+        <div class="form-group">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" required placeholder="Min 6 characters">
+        </div>
+        <p class="auth-error-msg" id="signup-error-msg"></p>
+        <button type="submit" class="btn btn-primary w-100 mt-2">Sign Up <i class="fa-solid fa-user-plus"></i></button>
+      </form>
+      <p class="auth-switch-text">Already have an account? <span id="switch-to-login">Log In</span></p>
+    </div>
+  </div>
+
+  <!-- Custom JS -->
+  <script src="app.js"></script>
+</body>
+</html>
